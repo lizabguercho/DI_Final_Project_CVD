@@ -4,7 +4,7 @@ import seaborn as sns
 import numpy as np
 import pandas as pd
 
-def plot_hist(df: pd.DataFrame, columns: list[str], bins=50, color="skyblue", jitter=False):
+def plot_hist(df: pd.DataFrame, columns: list[str], bins=50, color="skyblue", jitter=False,edgecolor="black"):
     """
     Plot histograms for one or more numeric columns in a DataFrame.
 
@@ -32,10 +32,100 @@ def plot_hist(df: pd.DataFrame, columns: list[str], bins=50, color="skyblue", ji
         if jitter:
             data = data + np.random.uniform(-0.3, 0.3, len(data))  
 
-        sns.histplot(data, bins=bins, color=color, kde=True)
+        sns.histplot(data, bins=bins, color=color,edgecolor=edgecolor, kde=True)
         plt.title(f"Distribution of {col}")
         plt.xlabel(col)
         plt.ylabel("Count")
 
     plt.tight_layout()
     plt.show()
+
+
+
+
+def plot_bar(df, x_col, y_col, title=None, xlabel=None, ylabel=None, rotation=0, color=None):
+    """
+    Plot a bar chart for any DataFrame columns.
+
+    Parameters:
+        df (pd.DataFrame): Your DataFrame
+        x_col (str): Column name for the x-axis
+        y_col (str): Column name for the y-axis
+        title (str, optional): Title of the chart
+        xlabel (str, optional): Label for x-axis
+        ylabel (str, optional): Label for y-axis
+        rotation (int, optional): Rotation of x-axis labels
+        color (str, optional): Bar color (default Matplotlib color cycle)
+    """
+    plt.rcParams["axes.grid"] = False 
+    plt.figure(figsize=(8, 5))
+    plt.bar(df[x_col], df[y_col], color=color)
+    plt.title(title if title else f"{y_col} by {x_col}", fontsize=14)
+    plt.xlabel(xlabel if xlabel else x_col)
+    plt.ylabel(ylabel if ylabel else y_col)
+    plt.xticks(rotation=rotation)
+    plt.tight_layout()
+    plt.show()
+
+def plot_bar2(df, x_col, y_col, title=None, xlabel=None, ylabel=None,
+             rotation=0, color=None, palette="Set2", show_values=True):
+    plt.rcParams["axes.grid"] = False 
+    plt.figure(figsize=(8, 5))
+
+    if color is None:
+        colors = sns.color_palette(palette, n_colors=len(df))
+    else:
+        colors = color
+
+    bars = plt.bar(df[x_col], df[y_col], color=colors)
+
+    if show_values:
+        for bar in bars:
+            height = bar.get_height()
+            plt.text(bar.get_x() + bar.get_width()/2, height,
+                     f"{int(height)}", ha='center', va='bottom', fontsize=9)
+
+    plt.title(title if title else f"{y_col} by {x_col}", fontsize=14)
+    plt.xlabel(xlabel if xlabel else x_col)
+    plt.ylabel(ylabel if ylabel else y_col)
+    plt.xticks(rotation=rotation)
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_pie(df, col, title=None, colors=None, palette="Set3"):
+    """
+    Plot a pie chart showing percentage and count for each category.
+
+    Parameters:
+        df (pd.DataFrame): DataFrame containing the data.
+        col (str): Column name to plot.
+        title (str, optional): Chart title.
+        colors (list, optional): Custom color list.
+        palette (str, optional): Seaborn palette name (default: 'Set3').
+    """
+    counts = df[col].value_counts(sort=False)
+    total = counts.sum()
+
+    # Auto-generate colors if none provided
+    if colors is None:
+        colors = sns.color_palette(palette, n_colors=len(counts))
+
+    # Custom autopct function to show both % and counts
+    def autopct_format(pct):
+        count = int(round(pct * total / 100.0))
+        return f"{pct:.1f}%\n(n={count})"
+
+    plt.figure(figsize=(6, 6))
+    plt.pie(
+        counts.values,
+        labels=counts.index,
+        colors=colors,
+        autopct=autopct_format,   # 👈 custom function
+        startangle=90,
+        counterclock=False
+    )
+    plt.title(title if title else f"Distribution of {col}", fontsize=14)
+    plt.tight_layout()
+    plt.show()
+
