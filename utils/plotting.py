@@ -43,31 +43,7 @@ def plot_hist(df: pd.DataFrame, columns: list[str], bins=50, color="skyblue", ji
 
 
 
-def plot_bar(df, x_col, y_col, title=None, xlabel=None, ylabel=None, rotation=0, color=None):
-    """
-    Plot a bar chart for any DataFrame columns.
-
-    Parameters:
-        df (pd.DataFrame): Your DataFrame
-        x_col (str): Column name for the x-axis
-        y_col (str): Column name for the y-axis
-        title (str, optional): Title of the chart
-        xlabel (str, optional): Label for x-axis
-        ylabel (str, optional): Label for y-axis
-        rotation (int, optional): Rotation of x-axis labels
-        color (str, optional): Bar color (default Matplotlib color cycle)
-    """
-    plt.rcParams["axes.grid"] = False 
-    plt.figure(figsize=(8, 5))
-    plt.bar(df[x_col], df[y_col], color=color)
-    plt.title(title if title else f"{y_col} by {x_col}", fontsize=14)
-    plt.xlabel(xlabel if xlabel else x_col)
-    plt.ylabel(ylabel if ylabel else y_col)
-    plt.xticks(rotation=rotation)
-    plt.tight_layout()
-    plt.show()
-
-def plot_bar2(df, x_col, y_col, title=None, xlabel=None, ylabel=None,
+def plot_bar(df, x_col, y_col, title=None, xlabel=None, ylabel=None,
              rotation=0, color=None, palette="Set2", show_values=True):
     plt.rcParams["axes.grid"] = False 
     plt.figure(figsize=(8, 5))
@@ -93,99 +69,6 @@ def plot_bar2(df, x_col, y_col, title=None, xlabel=None, ylabel=None,
     plt.show()
 
 
-def plot_pie(df, col, title=None, colors=None, palette="Set3",distance=1.12, textprops=None):
-    """
-    Plot a pie chart showing percentage and count for each category.
-
-    Parameters:
-        df (pd.DataFrame): DataFrame containing the data.
-        col (str): Column name to plot.
-        title (str, optional): Chart title.
-        colors (list, optional): Custom color list.
-        palette (str, optional): Seaborn palette name (default: 'Set3').
-    """
-    counts = df[col].value_counts(sort=False)
-    total = counts.sum()
-
-    # Auto-generate colors if none provided
-    if colors is None:
-        colors = sns.color_palette(palette, n_colors=len(counts))
-
-    # Custom autopct function to show both % and counts
-    def autopct_format(pct):
-        count = int(round(pct * total / 100.0))
-        return f"{pct:.1f}%\n(n={count})"
-
-    plt.figure(figsize=(6, 6))
-    plt.pie(
-        counts.values,
-        labels=counts.index,
-        colors=colors,
-        autopct=autopct_format,   # 👈 custom function
-        startangle=90,
-        counterclock=False
-    )
-    plt.title(title if title else f"Distribution of {col}", fontsize=14)
-    plt.tight_layout()
-    plt.show()
-
-import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
-
-def plot_pie2(df, col, title=None, colors=None, palette="Set3", distance=1.2,pctdistance=0.8, textprops=None):
-    """
-    Plot a pie chart with percentage and count labels placed outside the pie.
-
-    Parameters:
-        df (pd.DataFrame): DataFrame containing the data.
-        col (str): Column name to plot.
-        title (str, optional): Chart title.
-        colors (list, optional): Custom color list.
-        palette (str, optional): Seaborn palette name (default: 'Set3').
-        distance (float): Distance of label text from pie center (default 1.12).
-        textprops (dict): Text style properties for labels.
-    """
-    counts = df[col].value_counts(sort=False)
-    total = counts.sum()
-
-    # Auto-generate colors if none provided
-    if colors is None:
-        colors = sns.color_palette(palette, n_colors=len(counts))
-
-    # Default text style
-    if textprops is None:
-        textprops = {"fontsize": 10, "weight": "bold"}
-
-    # Label text builder
-    labels = [
-        f"{cat}\n{(count / total) * 100:.1f}% (n={count})"
-        for cat, count in zip(counts.index, counts.values)
-    ]
-
-    # Plot
-    plt.figure(figsize=(7, 7))
-    wedges, texts = plt.pie(
-        counts.values,
-        colors=colors,
-        startangle=90,
-        counterclock=False,
-        wedgeprops=dict(width=0.9, edgecolor="white")
-    )
-
-    # Place labels outside with lines
-    for i, (wedge, label) in enumerate(zip(wedges, labels)):
-        ang = (wedge.theta2 + wedge.theta1) / 2
-        x = np.cos(np.deg2rad(ang)) * distance
-        y = np.sin(np.deg2rad(ang)) * distance
-        ha = "left" if x > 0 else "right"
-        plt.text(x, y, label, ha=ha, va="center", **textprops)
-        plt.plot([x * 0.92, x], [y * 0.92, y], color="gray", lw=0.8)
-
-    plt.title(title if title else f"Distribution of {col}", fontsize=14)
-    plt.tight_layout()
-    plt.show()
-
 def barh_percent(df, col, order=None, palette="Set2", title=None):
     counts = df[col].value_counts()
     if order is not None:
@@ -200,5 +83,70 @@ def barh_percent(df, col, order=None, palette="Set2", title=None):
     plt.title(title or f"{col} distribution (%)")
     plt.xlabel("Percent")
     plt.xlim(0, max(perc)*1.15)
+    plt.tight_layout()
+    plt.show()
+    
+
+def plot_box(df, col, target='cardio',palette=None):
+    """
+    Draws a boxplot of a numeric variable split by the cardio target.
+    
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The dataframe containing your data.
+    col : str
+        The name of the numeric column to plot.
+    target : str, default='cardio'
+        The binary target variable (0 = No CVD, 1 = CVD).
+    """
+    plt.figure(figsize=(6, 4))
+    sns.boxplot(x=target, y=col, data=df, palette=palette)
+    
+    plt.title(f'Distribution of {col} by {target.capitalize()}', fontsize=12)
+    plt.xlabel(target.capitalize())
+    plt.ylabel(col.capitalize())
+    plt.xticks([0, 1], ['No CVD', 'CVD'])
+    plt.grid(axis='y', linestyle='--', alpha=0.6)
+    plt.tight_layout()
+    plt.show()
+    
+
+def plot_boxes(df, cols, target='cardio', palette=None, n_cols=3):
+    """
+    Draws boxplots for multiple numeric columns split by the target variable.
+    Compatible with Seaborn 0.13+ (no palette/hue warning).
+    """
+    n_rows = -(-len(cols) // n_cols)  # ceiling division
+
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(5 * n_cols, 4 * n_rows))
+    axes = axes.flatten()
+
+    for i, col in enumerate(cols):
+        # use hue=target and legend=False (recommended by new seaborn)
+        sns.boxplot(
+            data=df,
+            x=target,
+            y=col,
+            hue=target,
+            palette=palette,
+            ax=axes[i],
+            showfliers=False,
+            legend=False
+        )
+
+        axes[i].set_title(f'{col.capitalize()} by {target.capitalize()}')
+        axes[i].set_xlabel(target.capitalize())
+        axes[i].set_ylabel(col.capitalize())
+
+        # ensure fixed tick positions & labels
+        axes[i].set_xticks([0, 1])
+        axes[i].set_xticklabels(['No CVD', 'CVD'])
+        axes[i].grid(axis='y', linestyle='--', alpha=0.6)
+
+    # remove unused subplots if any
+    for j in range(i + 1, len(axes)):
+        fig.delaxes(axes[j])
+
     plt.tight_layout()
     plt.show()
