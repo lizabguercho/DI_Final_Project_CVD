@@ -150,3 +150,160 @@ def plot_boxes(df, cols, target='cardio', palette=None, n_cols=3):
 
     plt.tight_layout()
     plt.show()
+    
+    
+    
+def plot_subplots(df, vars_, target_col=None,*,var_order=None,target_order =(0,1), ncols=3, percent =True,colors=None):
+    n = len(vars_)
+    nrows = int(np.ceil(n / ncols))
+    fig, axes = plt.subplots(nrows, ncols, figsize=(6*ncols, 4*nrows))
+    axes = axes.flatten()
+    
+    for i, var in enumerate(vars_):
+        ax = axes[i]
+        
+        
+        if target_col is None:
+        # Just count values of the variable itself
+            ct = df[var].value_counts(normalize=percent) * (100 if percent else 1)
+            ct = pd.DataFrame({var: ct}).T
+            colors = ["#4C72B0"]
+        
+        ct = pd.crosstab(df[var], df[target_col])
+        present = [c for c in target_order if c in ct.columns]
+        ct = ct.reindex(columns=present)
+        if percent:
+            ct = ct.div(ct.sum(axis=1), axis=0).fillna(0) * 100
+        colors = colors
+        
+        
+        if var_order and var in var_order:
+            ct = ct.reindex(var_order[var])
+            
+        ct.plot(kind="bar", stacked=True, ax=ax, legend=False, color=colors,rot =0)
+        
+        
+        for container in ax.containers:
+            ax.bar_label(container, fmt='%.0f%%', label_type='center',
+                        fontsize=11, color='white', weight='bold')
+        ax.set_title(f"{var[:-6].capitalize()}")
+        ax.set_ylabel("Percentage"if percent else "Count")
+        ax.set_xlabel("")
+        ax.tick_params(axis='x', labelrotation=0)
+        ax.grid(False)
+
+    # Remove empty axes if the grid is not full
+    for j in range(i + 1, len(axes)):
+        fig.delaxes(axes[j])
+
+    # Add one shared legend on top
+    if target_col is not None:
+        legend_labels = [str(c) for c in target_order if c in df[target_col].unique()]
+        fig.legend(
+            legend_labels,
+            loc="upper center",
+            ncol=len(legend_labels),
+            frameon=False,
+            fontsize=12
+        )
+    
+    
+ 
+
+def plot_stacked_counts(
+    df,
+    vars_,
+    target_col,
+    *,
+    var_order=None,                 # {"cholesterol_label":[...], "glucose_label":[...]}
+    target_order=None,              # e.g. (0,1) or ("Female","Male"); if None -> data order
+    ncols=3,
+    colors=("lightcoral", "skyblue"),
+    rotation=0,
+    show_percent_inside=True,
+    show_totals_above=True,
+    legend_loc="upper center",
+    legend_fontsize=12,
+    ymax = None
+):
+    """
+    Stacked bar subplots with COUNT on y-axis, % labels inside segments, and n above bars.
+
+    Parameters
+    ----------
+    df : DataFrame
+    vars_ : list[str]
+        Categorical columns to plot on x-axis (one subplot per variable).
+    target_col : str
+        Column to stack by (e.g., 'cardio', 'gender_label', 'smoke').
+    var_order : dict[str, list[str]], optional
+        Desired category order per variable (row order).
+    target_order : sequence, optional
+        Desired order of stacked categories (column order).
+    """
+    n = len(vars_)
+    nrows = int(np.ceil(n / ncols))
+    fig, axes = plt.subplots(nrows, ncols, figsize=(6*ncols, 4*nrows))
+    axes = np.atleast_1d(axes).ravel()
+
+    for i, var in enumerate(vars_):
+        ax = axes[i]
+
+        # --- counts per category x target ---
+        ct = pd.crosstab(df[var], df[target_col])
+
+        # enforce row order (per variable) if provided
+        
+        if var_order and var in var_order:
+            ct = ct.reindex(var_order[var])
+
+        # enforce target (column) order if provided
+        if target_order is not None:
+            present = [c for c in target_order if c in ct.columns]
+            ct = ct.reindex(columns=present)
+
+        # plot stacked COUNTS
+        ct.plot(kind="bar", stacked=True, ax=ax, legend=False,
+                color=list(colors), rot=rotation)
+        
+        if ymax is not None:
+            ax.set_ylim(0, ymax)
+
+        # % labels INSIDE each colored segment
+        if show_percent_inside:
+            totals = ct.sum(axis=1).values
+            for container in ax.containers:
+                counts = [patch.get_height() for patch in container]
+                perc = [(c/t*100) if t > 0 else 0 for c, t in zip(counts, totals)]
+                labels = [f"{p:.0f}%" if c > 0 else "" for p, c in zip(perc, counts)]
+                ax.bar_label(container, labels=labels, label_type="center",
+                             fontsize=7, color="white")
+
+        # total n ABOVE each bar
+        if show_totals_above:
+            totals = ct.sum(axis=1).values
+            for x, total in enumerate(totals):
+                ax.text(x, total * 1.02, f"n={int(total)}",
+                        ha="center", va="bottom", fontsize=9)
+
+        # titles/axes
+        pretty = var.removesuffix("_label").replace("_", " ").capitalize()
+        ax.set_title(pretty)
+        ax.set_xlabel("")
+        ax.set_ylabel("Count")
+        ax.grid(False)
+
+    # remove unused axes (if grid not full)
+    for j in range(i + 1, len(axes)):
+        fig.delaxes(axes[j])
+
+    # legend in given order
+    cols_for_legend = (list(target_order)
+                       if target_order is not None
+                       else list(ct.columns))
+    fig.legend([str(c) for c in cols_for_legend],
+               loc=legend_loc, ncol=len(cols_for_legend),
+               frameon=False, fontsize=legend_fontsize)
+
+    plt.tight_layout(rect=[0, 0, 1, 0.93 if "upper" in legend_loc else 1])
+    plt.show()
