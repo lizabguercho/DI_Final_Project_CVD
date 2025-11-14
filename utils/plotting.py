@@ -307,3 +307,21 @@ def plot_stacked_counts(
 
     plt.tight_layout(rect=[0, 0, 1, 0.93 if "upper" in legend_loc else 1])
     plt.show()
+
+
+
+def plot_heatmap_table(df,groupby_columns:list[str],target_col,title,xlabel,ylabel,ax,cmap="Reds"):
+
+    heatmap_data = (
+        df
+        .groupby(groupby_columns, observed=True)[target_col]
+        .mean()
+        .unstack() * 100
+    )
+
+    sns.heatmap(heatmap_data, annot=True, fmt=".1f", cmap=cmap, ax=ax)
+    ax.set_title(title)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+
+    
