@@ -61,10 +61,10 @@ def plot_bar(df, x_col, y_col, title=None, xlabel=None, ylabel=None,
             plt.text(bar.get_x() + bar.get_width()/2, height,
                      f"{int(height)}", ha='center', va='bottom', fontsize=9)
 
-    plt.title(title if title else f"{y_col} by {x_col}", fontsize=14)
+    plt.title(title if title else f"{y_col} by {x_col}", fontsize=10)
     plt.xlabel(xlabel if xlabel else x_col)
     plt.ylabel(ylabel if ylabel else y_col)
-    plt.xticks(rotation=rotation)
+    plt.xticks(rotation=rotation,fontsize = 10)
     plt.tight_layout()
     plt.show()
 
@@ -323,5 +323,5 @@ def plot_heatmap_table(df,groupby_columns:list[str],target_col,title,xlabel,ylab
     ax.set_title(title)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-
+    return heatmap_data
     

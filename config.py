@@ -1,5 +1,12 @@
 from pathlib import Path
 import os
+import numpy as np
 
 DATASET_NAME = Path(__file__).parent / "data" / "cardio_train.csv"
 STANDARD_BIO_INDICATOR_ORDER = ["Normal","Above Normal","Well Above Normal"]
+BMI_BINS = [-np.inf, 18.5, 25, 30, 35, 40, np.inf]
+BMI_LABELS = ["Underweight", "Normal", "Overweight",
+              "Obesity I", "Obesity II", "Obesity III"]
+
+GRADIENT_COLORS = [ "#AFF8CC","#4CAF50",  "#FFC107",  "#FF9800",  "#F44336", "#9C27B0"]
+BP_ORDER = ["Normal","Elevated","Hypertension Stage 1","Hypertension Stage 2","Hypertensive Crisis"]
