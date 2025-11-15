@@ -325,3 +325,94 @@ def plot_heatmap_table(df,groupby_columns:list[str],target_col,title,xlabel,ylab
     ax.set_ylabel(ylabel)
     return heatmap_data
     
+
+def plot_categorical_distribution(df, column, palette="Set2"):
+    """
+    Plots the distribution of a categorical column with percentage labels.
+    Works for cholesterol, glucose, smoke, alco, active, etc.
+    """
+    
+    plt.figure(figsize=(8,5))
+
+    # Seaborn future-safe syntax
+    ax = sns.countplot(
+        data=df,
+        x=column,
+        hue=column,        # required for palettes
+        palette=palette,
+        legend=False       # hide duplicate legend
+    )
+
+    total = len(df)
+
+    # Add % labels
+    for bar in ax.patches:
+        count = bar.get_height()
+        percent = 100 * count / total
+        ax.text(
+            bar.get_x() + bar.get_width()/2,
+            count + (0.01 * total),
+            f"{percent:.1f}%",
+            ha="center",
+            fontsize=10
+        )
+
+    plt.title(f"Distribution of {column.replace('_', ' ').title()}")
+    plt.xlabel(column.replace('_', ' ').title())
+    plt.ylabel("Count")
+    plt.tight_layout()
+    plt.show()
+
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+def plot_categorical_subplot(df, columns, palette="Set2"):
+    """
+    Creates subplots for multiple categorical variables 
+    using the same y-axis scale and percent labels.
+    """
+
+    # Compute global max count for consistent scale
+    global_max = max(df[col].value_counts().max() for col in columns)
+
+    fig, axes = plt.subplots(1, len(columns), figsize=(6*len(columns), 5))
+
+    for ax, col in zip(axes, columns):
+
+        # countplot with future-safe syntax
+        sns.countplot(
+            data=df,
+            x=col,
+            hue=col,
+            palette=palette,
+            legend=False,
+            ax=ax
+        )
+        
+        total = len(df)
+
+        # Add % labels on each bar
+        for bar in ax.patches:
+            count = bar.get_height()
+            percent = 100 * count / total
+            ax.text(
+                bar.get_x() + bar.get_width()/2,
+                count + global_max*0.02,
+                f"{percent:.1f}%",
+                ha="center",
+                fontsize=9
+            )
+
+        # Same y-axis for all plots
+        ax.set_ylim(0, global_max * 1.15)
+
+        # Titles and labels
+        ax.set_title(f"Distribution of {col[:-6].title()}")
+        ax.set_xlabel(col.replace('_', ' ').title())
+        ax.set_ylabel("Count")
+
+    plt.tight_layout()
+    plt.show()
+
+

@@ -10,3 +10,6 @@ BMI_LABELS = ["Underweight", "Normal", "Overweight",
 
 GRADIENT_COLORS = [ "#AFF8CC","#4CAF50",  "#FFC107",  "#FF9800",  "#F44336", "#9C27B0"]
 BP_ORDER = ["Normal","Elevated","Hypertension Stage 1","Hypertension Stage 2","Hypertensive Crisis"]
+
+AGE_BINS  = [18, 40, 50, 60, 90]
+AGE_NAMES = ["18-39", "40-49", "50-59", "60-89"]
