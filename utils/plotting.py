@@ -332,7 +332,7 @@ def plot_categorical_distribution(df, column, palette="Set2"):
     Works for cholesterol, glucose, smoke, alco, active, etc.
     """
     
-    plt.figure(figsize=(8,5))
+    plt.figure(figsize=(6,4))
 
     # Seaborn future-safe syntax
     ax = sns.countplot(

@@ -61,6 +61,7 @@ def train_binary_classifier(
           }
         }
     """
+    # 1. define features/target, and split the data
     if features is None:
         features = [c for c in df.columns if c != target]
 
@@ -74,12 +75,11 @@ def train_binary_classifier(
         stratify=y if stratify else None,
     )
 
-    # Fit the provided model
+    # 2. Fit the model to the training dataset, and predict the test
     model.fit(X_train, y_train)
-
-    # Predictions
     y_pred = model.predict(X_test)
 
+    # 3. Compute the evaluation metrics and print them
     # Scores for AUC (probabilities if available, else decision function)
     y_score: Optional[np.ndarray] = None
     if hasattr(model, "predict_proba"):
