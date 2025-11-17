@@ -73,6 +73,7 @@ def train_binary_classifier(
         test_size=test_size,
         random_state=random_state,
         stratify=y if stratify else None,
+        
     )
 
     # 2. Fit the model to the training dataset, and predict the test
