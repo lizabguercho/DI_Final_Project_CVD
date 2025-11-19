@@ -5,22 +5,8 @@ import numpy as np
 import pandas as pd
 
 def plot_hist(df: pd.DataFrame, columns: list[str], bins=50, color="skyblue", jitter=False,edgecolor="black"):
-    """
-    Plot histograms for one or more numeric columns in a DataFrame.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Your dataframe.
-    columns : list
-        List of column names to plot.
-    bins : int, optional
-        Number of histogram bins (default=50).
-    color : str, optional
-        Color of the bars (default="skyblue").
-    jitter : bool, optional
-        If True, adds small random noise to make discrete data look smoother.
-    """
+    
+    """Plot histograms for one or more numeric columns in a dataframe"""
 
     n = len(columns)
     plt.figure(figsize=(6 * n, 4))
@@ -45,6 +31,9 @@ def plot_hist(df: pd.DataFrame, columns: list[str], bins=50, color="skyblue", ji
 
 def plot_bar(df, x_col, y_col, title=None, xlabel=None, ylabel=None,
              rotation=0, color=None, palette="Set2", show_values=True):
+    
+    """Plot a a vertical bar chart from a dataframe column pair"""
+    
     plt.rcParams["axes.grid"] = False 
     plt.figure(figsize=(8, 5))
 
@@ -70,6 +59,9 @@ def plot_bar(df, x_col, y_col, title=None, xlabel=None, ylabel=None,
 
 
 def barh_percent(df, col, order=None, palette="Set2", title=None):
+    
+    """Plot a horizontal bar chart showing the percentage distribution of a categorical column"""
+    
     counts = df[col].value_counts()
     if order is not None:
         counts = counts.reindex(order).dropna()
@@ -86,20 +78,69 @@ def barh_percent(df, col, order=None, palette="Set2", title=None):
     plt.tight_layout()
     plt.show()
     
+    
+    
+    
+    
+def plot_cvd_stacked_bar(df, group_col, 
+                         title=None,
+                         xlabel=None,
+                         colors=("#D15C4F", "#58B153"),
+                         figsize=(8,5)):
+
+    # 1. Crosstab normalized to 100%
+    ct = pd.crosstab(
+        df[group_col],
+        df["cardio_label"],
+        normalize="index"
+    ) * 100
+
+    # 2. Plot
+    ax = ct.plot(
+        kind="bar",
+        stacked=True,
+        figsize=figsize,
+        color=colors,
+        edgecolor="white",
+        width=0.75
+    )
+
+    # 3. Add percentage labels
+    for container in ax.containers:
+        ax.bar_label(
+            container,
+            fmt="%.0f%%",
+            label_type="center",
+            fontsize=9,
+            color="black"
+        )
+
+    # 4. Add sample sizes above bars
+    totals = df[group_col].value_counts().sort_index()
+    for i, total in enumerate(totals):
+        ax.text(
+            i,
+            100,
+            f"n={total}",
+            ha="center",
+            va="bottom",
+            fontsize=7,
+            fontweight="bold"
+        )
+
+    # 5. Titles and labels
+    plt.title(title or f"CVD Prevalence by {group_col} (100%)")
+    plt.ylabel("Percent")
+    plt.xlabel(xlabel or group_col.replace("_", " ").title())
+    plt.legend(title="Cardio")
+    plt.tight_layout()
+    plt.show()
+
 
 def plot_box(df, col, target='cardio',palette=None):
-    """
-    Draws a boxplot of a numeric variable split by the cardio target.
     
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        The dataframe containing your data.
-    col : str
-        The name of the numeric column to plot.
-    target : str, default='cardio'
-        The binary target variable (0 = No CVD, 1 = CVD).
-    """
+    """Draws a boxplot of a numeric variable split by the cardio target """
+    
     plt.figure(figsize=(6, 4))
     sns.boxplot(x=target, y=col, data=df, palette=palette)
     
@@ -112,111 +153,13 @@ def plot_box(df, col, target='cardio',palette=None):
     plt.show()
     
 
-def plot_boxes(df, cols, target='cardio', palette=None, n_cols=3):
-    """
-    Draws boxplots for multiple numeric columns split by the target variable.
-    Compatible with Seaborn 0.13+ (no palette/hue warning).
-    """
-    n_rows = -(-len(cols) // n_cols)  # ceiling division
-
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(5 * n_cols, 4 * n_rows))
-    axes = axes.flatten()
-
-    for i, col in enumerate(cols):
-        # use hue=target and legend=False (recommended by new seaborn)
-        sns.boxplot(
-            data=df,
-            x=target,
-            y=col,
-            hue=target,
-            palette=palette,
-            ax=axes[i],
-            showfliers=False,
-            legend=False
-        )
-
-        axes[i].set_title(f'{col.capitalize()} by {target.capitalize()}')
-        axes[i].set_xlabel(target.capitalize())
-        axes[i].set_ylabel(col.capitalize())
-
-        # ensure fixed tick positions & labels
-        axes[i].set_xticks([0, 1])
-        axes[i].set_xticklabels(['No CVD', 'CVD'])
-        axes[i].grid(axis='y', linestyle='--', alpha=0.6)
-
-    # remove unused subplots if any
-    for j in range(i + 1, len(axes)):
-        fig.delaxes(axes[j])
-
-    plt.tight_layout()
-    plt.show()
-    
-    
-    
-def plot_subplots(df, vars_, target_col=None,*,var_order=None,target_order =(0,1), ncols=3, percent =True,colors=None):
-    n = len(vars_)
-    nrows = int(np.ceil(n / ncols))
-    fig, axes = plt.subplots(nrows, ncols, figsize=(6*ncols, 4*nrows))
-    axes = axes.flatten()
-    
-    for i, var in enumerate(vars_):
-        ax = axes[i]
-        
-        
-        if target_col is None:
-        # Just count values of the variable itself
-            ct = df[var].value_counts(normalize=percent) * (100 if percent else 1)
-            ct = pd.DataFrame({var: ct}).T
-            colors = ["#4C72B0"]
-        
-        ct = pd.crosstab(df[var], df[target_col])
-        present = [c for c in target_order if c in ct.columns]
-        ct = ct.reindex(columns=present)
-        if percent:
-            ct = ct.div(ct.sum(axis=1), axis=0).fillna(0) * 100
-        colors = colors
-        
-        
-        if var_order and var in var_order:
-            ct = ct.reindex(var_order[var])
-            
-        ct.plot(kind="bar", stacked=True, ax=ax, legend=False, color=colors,rot =0)
-        
-        
-        for container in ax.containers:
-            ax.bar_label(container, fmt='%.0f%%', label_type='center',
-                        fontsize=11, color='white', weight='bold')
-        ax.set_title(f"{var[:-6].capitalize()}")
-        ax.set_ylabel("Percentage"if percent else "Count")
-        ax.set_xlabel("")
-        ax.tick_params(axis='x', labelrotation=0)
-        ax.grid(False)
-
-    # Remove empty axes if the grid is not full
-    for j in range(i + 1, len(axes)):
-        fig.delaxes(axes[j])
-
-    # Add one shared legend on top
-    if target_col is not None:
-        legend_labels = [str(c) for c in target_order if c in df[target_col].unique()]
-        fig.legend(
-            legend_labels,
-            loc="upper center",
-            ncol=len(legend_labels),
-            frameon=False,
-            fontsize=12
-        )
-    
-    
- 
-
 def plot_stacked_counts(
     df,
     vars_,
     target_col,
     *,
-    var_order=None,                 # {"cholesterol_label":[...], "glucose_label":[...]}
-    target_order=None,              # e.g. (0,1) or ("Female","Male"); if None -> data order
+    var_order=None,                
+    target_order=None,           
     ncols=3,
     colors=("lightcoral", "skyblue"),
     rotation=0,
@@ -226,21 +169,8 @@ def plot_stacked_counts(
     legend_fontsize=12,
     ymax = None
 ):
-    """
-    Stacked bar subplots with COUNT on y-axis, % labels inside segments, and n above bars.
-
-    Parameters
-    ----------
-    df : DataFrame
-    vars_ : list[str]
-        Categorical columns to plot on x-axis (one subplot per variable).
-    target_col : str
-        Column to stack by (e.g., 'cardio', 'gender_label', 'smoke').
-    var_order : dict[str, list[str]], optional
-        Desired category order per variable (row order).
-    target_order : sequence, optional
-        Desired order of stacked categories (column order).
-    """
+    """Stacked bar subplots with COUNT on y-axis, % labels inside segments, and n above bars """
+    
     n = len(vars_)
     nrows = int(np.ceil(n / ncols))
     fig, axes = plt.subplots(nrows, ncols, figsize=(6*ncols, 4*nrows))
@@ -312,6 +242,8 @@ def plot_stacked_counts(
 
 def plot_heatmap_table(df,groupby_columns:list[str],target_col,title,xlabel,ylabel,ax,cmap="Reds"):
 
+    """ Plot a heatmap that shows how the average of a target column changes across two categories"""
+    
     heatmap_data = (
         df
         .groupby(groupby_columns, observed=True)[target_col]
@@ -334,13 +266,13 @@ def plot_categorical_distribution(df, column, palette="Set2"):
     
     plt.figure(figsize=(6,4))
 
-    # Seaborn future-safe syntax
+   
     ax = sns.countplot(
         data=df,
         x=column,
-        hue=column,        # required for palettes
+        hue=column,        
         palette=palette,
-        legend=False       # hide duplicate legend
+        legend=False       
     )
 
     total = len(df)
@@ -364,14 +296,10 @@ def plot_categorical_distribution(df, column, palette="Set2"):
     plt.show()
 
 
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 def plot_categorical_subplot(df, columns, palette="Set2"):
-    """
-    Creates subplots for multiple categorical variables 
-    using the same y-axis scale and percent labels.
-    """
+    
+    """Creates subplots for multiple categorical variables """
 
     # Compute global max count for consistent scale
     global_max = max(df[col].value_counts().max() for col in columns)

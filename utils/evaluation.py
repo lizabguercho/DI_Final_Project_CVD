@@ -24,42 +24,7 @@ def train_binary_classifier(
     """
     Split data, fit the given model, and report binary classification metrics.
 
-    Parameters
-    ----------
-    model : sklearn-like estimator
-        Must implement fit(X, y) and predict(X). AUC is computed via
-        predict_proba(X)[:, 1] if available, otherwise decision_function(X).
-    df : pd.DataFrame
-        Full dataframe containing features and the target column.
-    target : str
-        Name of the binary target column (values like {0,1} or {False,True}).
-    features : list[str] or None
-        If None, uses all columns except target.
-    test_size : float
-        Fraction for the test split.
-    random_state : int
-        Random seed for reproducibility.
-    stratify : bool
-        If True, use stratified split on the target.
 
-    Returns
-    -------
-    dict
-        {
-          "model": fitted_model,
-          "X_train": X_train, "X_test": X_test,
-          "y_train": y_train, "y_test": y_test,
-          "y_pred": y_pred, "y_score": y_score (or None),
-          "report_text": classification_report_str,
-          "metrics": {
-              "accuracy": ...,
-              "precision": ...,
-              "recall": ...,
-              "f1": ...,
-              "auc": ...,
-              "confusion_matrix": [[tn, fp], [fn, tp]]
-          }
-        }
     """
     # 1. define features/target, and split the data
     if features is None:
@@ -81,7 +46,7 @@ def train_binary_classifier(
     y_pred = model.predict(X_test)
 
     # 3. Compute the evaluation metrics and print them
-    # Scores for AUC (probabilities if available, else decision function)
+    # Scores for AUC 
     y_score: Optional[np.ndarray] = None
     if hasattr(model, "predict_proba"):
         try:
@@ -104,7 +69,7 @@ def train_binary_classifier(
 
     report_txt = classification_report(y_test, y_pred, digits=3)
 
-    # Print a short summary (optional)
+    # Print a short summary 
     print("=== Classification Report ===")
     print(report_txt)
     print("=== Metrics ===")
@@ -133,36 +98,3 @@ def train_binary_classifier(
         },
     }
 
-from sklearn.pipeline import Pipeline
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.linear_model import LogisticRegression
-
-def make_logreg_pipeline(df, target, use_balanced=False):
-    num_cols = df.select_dtypes(include="number").columns.drop(target, errors="ignore")
-    cat_cols = df.columns.difference(num_cols.union([target]))
-
-    preprocess = ColumnTransformer(
-        transformers=[
-            ("num", StandardScaler(), list(num_cols)),
-            ("cat", OneHotEncoder(handle_unknown="ignore"), list(cat_cols)),
-        ],
-        remainder="drop",
-        sparse_threshold=0.3,  # keep sparse if lots of one-hot features
-    )
-
-    # Tips:
-    # - 'saga' converges well on large data, supports OHE + sparse matrices.
-    # - Smaller C (stronger regularization) often helps convergence.
-    # - Slightly looser tol speeds convergence without hurting metrics much.
-    logreg = LogisticRegression(
-        solver="saga",
-        penalty="l2",
-        C=0.5,               # try 0.1 ↔ 1.0; smaller = easier to converge
-        max_iter=4000,       # plenty, but needed much less once scaled
-        tol=1e-3,            # default 1e-4 can be stricter than needed
-        class_weight="balanced" if use_balanced else None,
-        n_jobs=-1            # parallel where supported
-    )
-
-    return Pipeline([("prep", preprocess), ("clf", logreg)])
