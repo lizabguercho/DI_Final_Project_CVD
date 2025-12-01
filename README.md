@@ -1,12 +1,12 @@
-🫀 Cardiovascular Disease Prediction
+# 🫀 Cardiovascular Disease Prediction
 
 Data Analytics | Machine Learning | Healthcare
 
 This project aims to predict the risk of cardiovascular disease (CVD) using a Kaggle dataset of ~70,000 patients.
 It includes full data cleaning, exploratory analysis, feature engineering, machine-learning models, and an interactive Tableau dashboard.
 
-🔧 Workflow Summary
-1. Data Cleaning
+## 🔧 Workflow Summary
+### 1. Data Cleaning
 
 • Removed unrealistic values
 
@@ -14,7 +14,7 @@ It includes full data cleaning, exploratory analysis, feature engineering, machi
 
 • Created new features: BMI, pulse pressure, BP categories, metabolic syndrome flags
 
-2. Exploratory Data Analysis
+### 2. Exploratory Data Analysis
 
 • Risk factors: age, BP, cholesterol, BMI
 
@@ -22,7 +22,7 @@ It includes full data cleaning, exploratory analysis, feature engineering, machi
 
 • Visualizations built in Tableau
 
-3. Machine Learning
+### 3. Machine Learning
 
 Models tested:
 
@@ -34,7 +34,7 @@ Models tested:
 
 Metrics show Gradient Boosted Tree achieved the strongest balance between precision, recall, and accuracy.
 
-🧠 Key Insights
+## 🧠 Key Insights
 
 • High blood pressure, age, cholesterol, and BMI strongly influence CVD risk.
 
@@ -42,10 +42,10 @@ Metrics show Gradient Boosted Tree achieved the strongest balance between precis
 
 • Feature-engineered variables improved model performance.High blood pressure, age, cholesterol, and BMI strongly influence CVD risk.
 
-🛠️ Tools
+## 🛠️ Tools
 
 Python, Pandas, NumPy, Scikit-Learn, Matplotlib, Seaborn, Tableau
 
-👩‍🔬 About the Author
+## 👩‍🔬 About the Author
 
 Biologist turned Data Analyst, focusing on data-driven healthcare insights and ML applications in health-tech.
